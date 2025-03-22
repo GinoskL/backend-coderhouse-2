@@ -1,15 +1,23 @@
 import express from 'express';
-import ProductManager from '../models/ProductManager.js';
+import productManager from '../models/ProductManager.js';
 
 const router = express.Router();
-const productManager = new ProductManager('products.json');
 
-// GET /api/products
+// GET /api/products (Con paginación, filtros y ordenamiento)
 router.get('/', async (req, res) => {
     try {
-        const products = await productManager.getProducts();
-        const limit = req.query.limit;
-        res.json(limit ? products.slice(0, parseInt(limit)) : products);
+        const { limit = 10, page = 1, sort, query } = req.query;
+
+        const options = {
+            limit: parseInt(limit),
+            page: parseInt(page),
+            sort: sort ? { price: sort === 'asc' ? 1 : -1 } : {} // Orden por precio asc/desc
+        };
+
+        const filter = query ? { category: query } : {}; // Filtra por categoría si se envía query
+
+        const products = await productManager.getProducts(filter, options);
+        res.json(products);
     } catch (error) {
         res.status(500).json({ error: error.message });
     }
@@ -21,7 +29,7 @@ router.get('/:pid', async (req, res) => {
         const product = await productManager.getProductById(req.params.pid);
         res.json(product);
     } catch (error) {
-        res.status(404).json({ error: error.message });
+        res.status(404).json({ error: "Producto no encontrado" });
     }
 });
 
@@ -29,12 +37,9 @@ router.get('/:pid', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const newProduct = await productManager.addProduct(req.body);
-        if (!newProduct) {
-            return res.status(400).json({ error: "Error al agregar el producto. Verifica los datos." });
-        }
         res.status(201).json(newProduct);
     } catch (error) {
-        res.status(500).json({ error: error.message });
+        res.status(400).json({ error: error.message });
     }
 });
 

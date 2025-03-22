@@ -8,11 +8,15 @@ import { fileURLToPath } from 'url';
 import productsRouter from './routes/products.routes.js';
 import cartsRouter from './routes/carts.routes.js';
 import ProductManager from './models/ProductManager.js';
+import connectDB from './config/db.js';
+connectDB();
+
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const productManager = new ProductManager('products.json'); // ✅ Instanciamos ProductManager correctamente
+import productManager from './models/ProductManager.js'; // ✅ Instancia ya creada
+ // ✅ Instanciamos ProductManager correctamente
 
 const app = express();
 const server = createServer(app);
