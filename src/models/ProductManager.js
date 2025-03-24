@@ -22,7 +22,18 @@ class ProductManager {
 
     async getProducts(query = {}, options = {}) {
         try {
-            return await Product.find(query).sort(options.sort).limit(options.limit).skip((options.page - 1) * options.limit);
+            const { sort = null, limit = 10, page = 1 } = options;
+
+            const products = await Product.find(query)
+                .sort(sort ? { price: sort === "asc" ? 1 : -1 } : {})
+                .limit(limit)
+                .skip((page - 1) * limit);
+
+            if (!products || products.length === 0) {
+                throw new Error("❌ No hay productos en la base de datos.");
+            }
+
+            return products;
         } catch (error) {
             console.error("❌ Error al obtener productos:", error.message);
             throw error;
@@ -32,7 +43,7 @@ class ProductManager {
     async getProductById(id) {
         try {
             const product = await Product.findById(id);
-            if (!product) throw new Error("Producto no encontrado");
+            if (!product) throw new Error("❌ Producto no encontrado");
             return product;
         } catch (error) {
             console.error("❌ Error al obtener producto por ID:", error.message);
@@ -43,7 +54,7 @@ class ProductManager {
     async updateProduct(id, updates) {
         try {
             const updatedProduct = await Product.findByIdAndUpdate(id, updates, { new: true });
-            if (!updatedProduct) throw new Error("Producto no encontrado");
+            if (!updatedProduct) throw new Error("❌ Producto no encontrado");
             return updatedProduct;
         } catch (error) {
             console.error("❌ Error al actualizar producto:", error.message);
@@ -54,7 +65,8 @@ class ProductManager {
     async deleteProduct(id) {
         try {
             const deletedProduct = await Product.findByIdAndDelete(id);
-            if (!deletedProduct) throw new Error("Producto no encontrado");
+            if (!deletedProduct) throw new Error("❌ Producto no encontrado");
+            return deletedProduct;
         } catch (error) {
             console.error("❌ Error al eliminar producto:", error.message);
             throw error;
@@ -62,4 +74,5 @@ class ProductManager {
     }
 }
 
-export default new ProductManager();
+// ✅ Exportamos la CLASE en lugar de una instancia
+export default ProductManager;

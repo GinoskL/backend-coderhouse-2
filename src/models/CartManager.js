@@ -11,10 +11,20 @@ class CartManager {
         }
     }
 
+    async getAllCarts() {
+        try {
+            const carts = await Cart.find();
+            return carts;
+        } catch (error) {
+            console.error("❌ Error al obtener todos los carritos:", error.message);
+            throw error;
+        }
+    }
+
     async getCartById(cartId) {
         try {
-            const cart = await Cart.findById(cartId).populate('products.product'); // ✅ Trae productos completos
-            if (!cart) throw new Error("Carrito no encontrado");
+            const cart = await Cart.findById(cartId).populate('products.product');
+            if (!cart) throw new Error("❌ Carrito no encontrado");
             return cart;
         } catch (error) {
             console.error("❌ Error al obtener carrito:", error.message);
@@ -25,7 +35,7 @@ class CartManager {
     async addProductToCart(cartId, productId, quantity = 1) {
         try {
             const cart = await Cart.findById(cartId);
-            if (!cart) throw new Error("Carrito no encontrado");
+            if (!cart) throw new Error("❌ Carrito no encontrado");
 
             const existingProduct = cart.products.find(p => p.product.toString() === productId);
             if (existingProduct) {
@@ -54,8 +64,8 @@ class CartManager {
             const productIndex = cart.products.findIndex(p => p.product.toString() === productId);
             if (productIndex === -1) throw new Error("❌ Producto no encontrado en el carrito");
     
-            cart.products.splice(productIndex, 1); // ✅ Eliminar producto del array
-            await cart.save(); // ✅ Guardar cambios en MongoDB
+            cart.products.splice(productIndex, 1);
+            await cart.save();
     
             return cart;
         } catch (error) {
@@ -63,12 +73,11 @@ class CartManager {
             throw error;
         }
     }
-    
 
     async updateCart(cartId, products) {
         try {
             const cart = await Cart.findByIdAndUpdate(cartId, { products }, { new: true });
-            if (!cart) throw new Error("Carrito no encontrado");
+            if (!cart) throw new Error("❌ Carrito no encontrado");
             return cart;
         } catch (error) {
             console.error("❌ Error al actualizar carrito:", error.message);
@@ -79,10 +88,10 @@ class CartManager {
     async updateProductQuantity(cartId, productId, quantity) {
         try {
             const cart = await Cart.findById(cartId);
-            if (!cart) throw new Error("Carrito no encontrado");
+            if (!cart) throw new Error("❌ Carrito no encontrado");
 
             const productToUpdate = cart.products.find(p => p.product.toString() === productId);
-            if (!productToUpdate) throw new Error("Producto no encontrado en el carrito");
+            if (!productToUpdate) throw new Error("❌ Producto no encontrado en el carrito");
 
             productToUpdate.quantity = quantity;
             await cart.save();
@@ -96,7 +105,7 @@ class CartManager {
     async clearCart(cartId) {
         try {
             const cart = await Cart.findById(cartId);
-            if (!cart) throw new Error("Carrito no encontrado");
+            if (!cart) throw new Error("❌ Carrito no encontrado");
 
             cart.products = [];
             await cart.save();
@@ -108,4 +117,5 @@ class CartManager {
     }
 }
 
-export default new CartManager();
+// ✅ Exportamos la CLASE en lugar de una instancia
+export default CartManager;

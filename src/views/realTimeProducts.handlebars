@@ -18,7 +18,7 @@
     <tbody id="product-list">
         {{#each products}}
         <tr>
-            <td>{{this.id}}</td>
+            <td>{{this._id}}</td>
             <td>{{this.title}}</td>
             <td>{{this.description}}</td>
             <td>{{this.code}}</td>
@@ -32,13 +32,12 @@
                 {{/each}}
             </td>
             <td>
-                <button onclick="deleteProduct('{{cartId}}', '{{this._id}}')">Eliminar</button>
+                <button onclick="deleteProduct('{{../cartId}}', '{{this._id}}')">🗑 Eliminar</button>
             </td>
         </tr>
         {{/each}}
     </tbody>
 </table>
-
 
 <!-- Formulario para agregar productos -->
 <form id="product-form">
@@ -57,58 +56,74 @@
 <script>
     const socket = io();
 
-    // Escuchar actualización de productos
-socket.on('updateProducts', (products) => {
-    const tableBody = document.getElementById('product-list');
-    tableBody.innerHTML = '';
-
-    products.forEach(product => {
-        const row = document.createElement('tr');
-        row.innerHTML = `
-            <td>${product.id}</td>
-            <td>${product.title}</td>
-            <td>${product.description}</td>
-            <td>${product.code}</td>
-            <td>$${product.price}</td>
-            <td>${product.stock}</td>
-            <td>${product.category}</td>
-            <td>${product.status ? '✔️' : '❌'}</td>
-            <td>
-                ${product.thumbnails.map(img => `<img src="${img}" alt="Imagen" width="50">`).join('')}
-            </td>
-            <td>
-                <button onclick="deleteProduct('${product.id}')">🗑 Eliminar</button>
-            </td>
-        `;
-        tableBody.appendChild(row);
+    // ✅ Escuchar actualización de productos desde WebSockets
+    socket.on('updateProducts', (products) => {
+        console.log("📥 Productos recibidos desde WebSocket:", products);
+        renderProducts(products);
     });
-});
 
+    function renderProducts(products) {
+        const tableBody = document.getElementById('product-list');
+        tableBody.innerHTML = '';
 
-    // Enviar nuevo producto por WebSockets
-document.getElementById('product-form').addEventListener('submit', (event) => {
-    event.preventDefault();
-    
-    const title = document.getElementById('title').value;
-    const description = document.getElementById('description').value;
-    const code = document.getElementById('code').value;
-    const price = document.getElementById('price').value;
-    const stock = document.getElementById('stock').value;
-    const category = document.getElementById('category').value;
-    const thumbnails = document.getElementById('thumbnails').value.split(',').map(url => url.trim());
+        if (!products || products.length === 0) {
+            tableBody.innerHTML = '<tr><td colspan="10">❌ No hay productos disponibles</td></tr>';
+            return;
+        }
 
-    const newProduct = { title, description, code, price: Number(price), stock: Number(stock), category, thumbnails };
+        products.forEach(product => {
+            const row = document.createElement('tr');
+            row.innerHTML = `
+                <td>${product._id}</td>
+                <td>${product.title}</td>
+                <td>${product.description}</td>
+                <td>${product.code}</td>
+                <td>$${product.price}</td>
+                <td>${product.stock}</td>
+                <td>${product.category}</td>
+                <td>${product.status ? '✔️' : '❌'}</td>
+                <td>
+                    ${product.thumbnails.map(img => `<img src="${img}" alt="Imagen" width="50">`).join('')}
+                </td>
+                <td>
+                    <button onclick="deleteProduct('${cartId}', '${product._id}')">🗑 Eliminar</button>
+                </td>
+            `;
+            tableBody.appendChild(row);
+        });
+    }
 
-    console.log("📤 Enviando producto desde frontend:", newProduct);  // 👀 Verifica en la consola
+    // ✅ Enviar nuevo producto por WebSockets
+    document.getElementById('product-form').addEventListener('submit', (event) => {
+        event.preventDefault();
 
-    socket.emit('newProduct', newProduct);
+        const title = document.getElementById('title').value;
+        const description = document.getElementById('description').value;
+        const code = document.getElementById('code').value;
+        const price = document.getElementById('price').value;
+        const stock = document.getElementById('stock').value;
+        const category = document.getElementById('category').value;
+        const thumbnails = document.getElementById('thumbnails').value.split(',').map(url => url.trim());
 
-    document.getElementById('product-form').reset();
-});
+        const newProduct = { title, description, code, price: Number(price), stock: Number(stock), category, thumbnails };
 
+        console.log("📤 Enviando producto:", newProduct);
 
-    // Enviar solicitud para eliminar un producto
-    function deleteProduct(id) {
-        socket.emit('deleteProduct', id);
+        socket.emit('newProduct', newProduct);
+
+        document.getElementById('product-form').reset();
+    });
+
+    // ✅ Eliminar producto
+    function deleteProduct(cartId, productId) {
+        if (!cartId || !productId) {
+            console.error("❌ Error: Faltan cartId o productId.");
+            return;
+        }
+        console.log(`🗑 Eliminando producto ${productId} del carrito ${cartId}`);
+        socket.emit('deleteProduct', { cartId, productId });
     }
 </script>
+
+
+
