@@ -1,26 +1,94 @@
-import fs from 'fs';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import { io } from '../server.js'; // Importamos WebSockets
+import ProductManager from "../models/ProductManager.js"
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const productManager = new ProductManager()
 
-const filePath = path.join(__dirname, '../data/products.json');
+export const getAllProducts = async (req, res) => {
+  try {
+    const { limit = 10, page = 1, sort, category } = req.query
 
-const getProducts = () => {
-    return JSON.parse(fs.readFileSync(filePath, 'utf-8'));
-};
+    const options = {
+      limit: Number.parseInt(limit),
+      page: Number.parseInt(page),
+      sort: sort,
+    }
 
-const addProduct = (req, res) => {
-    const products = getProducts();
-    const newProduct = { id: Date.now(), ...req.body };
+    // Build filter object based on query parameters
+    const filter = {}
+    if (category) {
+      filter.category = category
+    }
 
-    products.push(newProduct);
-    fs.writeFileSync(filePath, JSON.stringify(products, null, 2));
+    const products = await productManager.getProducts(filter, options)
+    const totalProducts = await productManager.countProducts(filter)
+    const totalPages = Math.ceil(totalProducts / options.limit)
+    const hasPrevPage = options.page > 1
+    const hasNextPage = options.page < totalPages
 
-    io.emit('updateProducts', products); // Enviamos los productos actualizados a todos los clientes
-    res.status(201).json({ message: 'Producto agregado', product: newProduct });
-};
+    return res.json({
+      status: "success",
+      payload: products,
+      totalPages,
+      prevPage: hasPrevPage ? options.page - 1 : null,
+      nextPage: hasNextPage ? options.page + 1 : null,
+      page: options.page,
+      hasPrevPage,
+      hasNextPage,
+      prevLink: hasPrevPage
+        ? `/api/products?limit=${limit}&page=${options.page - 1}${sort ? `&sort=${sort}` : ""}${category ? `&category=${category}` : ""}`
+        : null,
+      nextLink: hasNextPage
+        ? `/api/products?limit=${limit}&page=${options.page + 1}${sort ? `&sort=${sort}` : ""}${category ? `&category=${category}` : ""}`
+        : null,
+    })
+  } catch (error) {
+    console.error("Error getting products:", error)
+    return res.status(500).json({ status: "error", error: error.message })
+  }
+}
 
-export { getProducts, addProduct };
+export const getProductById = async (req, res) => {
+  try {
+    const product = await productManager.getProductById(req.params.pid)
+    return res.json({ status: "success", payload: product })
+  } catch (error) {
+    return res.status(404).json({ status: "error", error: error.message })
+  }
+}
+
+export const createProduct = async (req, res) => {
+  try {
+    // Validate required fields
+    const { title, description, code, price, stock, category } = req.body
+
+    if (!title || !description || !code || !price || !stock || !category) {
+      return res.status(400).json({
+        status: "error",
+        error: "Faltan campos obligatorios. Se requiere title, description, code, price, stock y category",
+      })
+    }
+
+    const newProduct = await productManager.addProduct(req.body)
+    return res.status(201).json({ status: "success", payload: newProduct })
+  } catch (error) {
+    return res.status(400).json({ status: "error", error: error.message })
+  }
+}
+
+export const updateProduct = async (req, res) => {
+  try {
+    const updatedProduct = await productManager.updateProduct(req.params.pid, req.body)
+    return res.json({ status: "success", payload: updatedProduct })
+  } catch (error) {
+    return res.status(400).json({ status: "error", error: error.message })
+  }
+}
+
+export const deleteProduct = async (req, res) => {
+  try {
+    await productManager.deleteProduct(req.params.pid)
+    return res.status(204).send()
+  } catch (error) {
+    return res.status(400).json({ status: "error", error: error.message })
+  }
+}
+

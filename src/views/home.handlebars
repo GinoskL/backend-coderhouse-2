@@ -1,9 +1,416 @@
-<h1>{{title}}</h1>
+<div class="hero-section">
+  <div class="hero-content">
+    <h1>Bienvenido a nuestra tienda online</h1>
+    <p class="hero-description">Descubre nuestra selección de productos de alta calidad</p>
+    <a href="/products" class="hero-button">Ver catálogo completo</a>
+  </div>
+</div>
 
-<ul>
-    {{#each products}}
-        <li>{{this.title}} - ${{this.price}}</li>
+<div class="featured-section">
+  <h2 class="section-title">Productos destacados</h2>
+  
+  <div class="featured-products">
+    {{#if products.length}}
+      {{#each products}}
+        {{#if @index}}<div class="product-card">{{else}}<div class="product-card featured">{{/if}}
+          <div class="product-image">
+            {{#if this.thumbnails.length}}
+              <img src="{{this.thumbnails.[0]}}" alt="{{this.title}}">
+            {{else}}
+              <div class="no-image">Sin imagen</div>
+            {{/if}}
+          </div>
+          <div class="product-info">
+            <h3>{{this.title}}</h3>
+            <p class="product-description">{{this.description}}</p>
+            <p class="product-price">${{this.price}}</p>
+            <div class="product-actions">
+              <button class="add-to-cart-btn" onclick="addToCart('{{../cartId}}', '{{this._id}}')">
+                Agregar al carrito
+              </button>
+              <a href="/products" class="view-details-btn">Ver detalles</a>
+            </div>
+          </div>
+        </div>
+      {{/each}}
+    {{else}}
+      <div class="no-products">No hay productos disponibles</div>
+    {{/if}}
+  </div>
+</div>
+
+<div class="categories-section">
+  <h2 class="section-title">Explora nuestras categorías</h2>
+  
+  <div class="categories-grid">
+    {{#each categories}}
+      <a href="/products?category={{this}}" class="category-card">
+        <div class="category-icon">
+          <i class="category-{{this}}"></i>
+        </div>
+        <h3>{{this}}</h3>
+      </a>
+    {{else}}
+      <div class="categories-placeholder">
+        <div class="category-card">
+          <div class="category-icon">
+            <i class="category-electronics"></i>
+          </div>
+          <h3>Electrónica</h3>
+        </div>
+        <div class="category-card">
+          <div class="category-icon">
+            <i class="category-clothing"></i>
+          </div>
+          <h3>Ropa</h3>
+        </div>
+        <div class="category-card">
+          <div class="category-icon">
+            <i class="category-home"></i>
+          </div>
+          <h3>Hogar</h3>
+        </div>
+        <div class="category-card">
+          <div class="category-icon">
+            <i class="category-sports"></i>
+          </div>
+          <h3>Deportes</h3>
+        </div>
+      </div>
     {{/each}}
-</ul>
+  </div>
+</div>
 
-<a href="/realtimeproducts">Ver productos en tiempo real</a>
+<!-- Toast notification container -->
+<div id="toast-container" class="toast-container"></div>
+
+<script>
+  function addToCart(cartId, productId) {
+    if (!cartId || !productId) {
+      console.error("❌ Error: Faltan cartId o productId.");
+      return;
+    }
+    
+    console.log(`🛒 Agregando producto ${productId} al carrito ${cartId}`);
+    
+    // Use fetch to call the API endpoint
+    fetch(`/api/carts/${cartId}/products/${productId}`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ quantity: 1 })
+    })
+    .then(response => {
+      if (!response.ok) {
+        throw new Error('Error al agregar al carrito');
+      }
+      return response.json();
+    })
+    .then(data => {
+      console.log("✅ Producto agregado al carrito:", data);
+      // Show toast notification instead of alert
+      showToast('✅ Producto agregado al carrito correctamente', 'success');
+    })
+    .catch(error => {
+      console.error("❌ Error:", error);
+      showToast('❌ Error al agregar el producto al carrito', 'error');
+    });
+  }
+  
+  // Function to show toast notification
+  function showToast(message, type = 'info') {
+    const toast = document.createElement('div');
+    toast.className = `toast toast-${type}`;
+    toast.innerHTML = message;
+    
+    const container = document.getElementById('toast-container');
+    container.appendChild(toast);
+    
+    // Trigger animation
+    setTimeout(() => {
+      toast.classList.add('show');
+    }, 10);
+    
+    // Remove toast after 3 seconds
+    setTimeout(() => {
+      toast.classList.remove('show');
+      setTimeout(() => {
+        container.removeChild(toast);
+      }, 300);
+    }, 3000);
+  }
+</script>
+
+<style>
+  /* Hero Section */
+  .hero-section {
+    background: linear-gradient(rgba(0, 0, 0, 0.5), rgba(0, 0, 0, 0.5)), url('/placeholder.svg');
+    background-size: cover;
+    background-position: center;
+    color: white;
+    text-align: center;
+    padding: 80px 20px;
+    margin-bottom: 40px;
+    border-radius: 8px;
+  }
+  
+  .hero-content {
+    max-width: 800px;
+    margin: 0 auto;
+  }
+  
+  .hero-section h1 {
+    font-size: 2.5rem;
+    margin-bottom: 20px;
+  }
+  
+  .hero-description {
+    font-size: 1.2rem;
+    margin-bottom: 30px;
+  }
+  
+  .hero-button {
+    display: inline-block;
+    background-color: #4CAF50;
+    color: white;
+    padding: 12px 24px;
+    border-radius: 4px;
+    text-decoration: none;
+    font-weight: bold;
+    transition: background-color 0.3s;
+  }
+  
+  .hero-button:hover {
+    background-color: #45a049;
+  }
+  
+  /* Featured Products Section */
+  .featured-section {
+    margin-bottom: 40px;
+  }
+  
+  .section-title {
+    text-align: center;
+    margin-bottom: 30px;
+    font-size: 1.8rem;
+    position: relative;
+  }
+  
+  .section-title:after {
+    content: '';
+    display: block;
+    width: 50px;
+    height: 3px;
+    background-color: #4CAF50;
+    margin: 10px auto 0;
+  }
+  
+  .featured-products {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 20px;
+  }
+  
+  .product-card {
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    overflow: hidden;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .product-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+  }
+  
+  .product-card.featured {
+    grid-column: span 2;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+  }
+  
+  @media (max-width: 768px) {
+    .product-card.featured {
+      grid-column: span 1;
+      display: block;
+    }
+  }
+  
+  .product-image {
+    height: 200px;
+    overflow: hidden;
+  }
+  
+  .product-card.featured .product-image {
+    height: 100%;
+  }
+  
+  .product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.3s;
+  }
+  
+  .product-card:hover .product-image img {
+    transform: scale(1.05);
+  }
+  
+  .no-image {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f5f5f5;
+    color: #999;
+  }
+  
+  .product-info {
+    padding: 20px;
+  }
+  
+  .product-description {
+    color: #666;
+    margin: 10px 0;
+    font-size: 0.9em;
+  }
+  
+  .product-price {
+    font-weight: bold;
+    font-size: 1.2em;
+    margin: 15px 0;
+    color: #4CAF50;
+  }
+  
+  .product-actions {
+    display: flex;
+    gap: 10px;
+  }
+  
+  .add-to-cart-btn {
+    flex: 1;
+    background-color: #4CAF50;
+    color: white;
+    border: none;
+    padding: 10px;
+    border-radius: 4px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+  }
+  
+  .add-to-cart-btn:hover {
+    background-color: #45a049;
+  }
+  
+  .view-details-btn {
+    flex: 1;
+    background-color: #f5f5f5;
+    color: #333;
+    border: 1px solid #ddd;
+    padding: 10px;
+    border-radius: 4px;
+    text-decoration: none;
+    text-align: center;
+    transition: background-color 0.3s;
+  }
+  
+  .view-details-btn:hover {
+    background-color: #e5e5e5;
+  }
+  
+  /* Categories Section */
+  .categories-section {
+    margin-bottom: 40px;
+  }
+  
+  .categories-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 20px;
+  }
+  
+  .category-card {
+    background-color: #f5f5f5;
+    border-radius: 8px;
+    padding: 20px;
+    text-align: center;
+    text-decoration: none;
+    color: #333;
+    transition: transform 0.3s, box-shadow 0.3s;
+  }
+  
+  .category-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+  }
+  
+  .category-icon {
+    font-size: 2rem;
+    margin-bottom: 15px;
+    color: #4CAF50;
+  }
+  
+  .category-card h3 {
+    margin: 0;
+    font-size: 1.2rem;
+  }
+  
+  /* Toast Notifications */
+  .toast-container {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    z-index: 1000;
+  }
+  
+  .toast {
+    min-width: 250px;
+    margin-bottom: 10px;
+    padding: 15px 20px;
+    border-radius: 4px;
+    color: white;
+    font-weight: 500;
+    opacity: 0;
+    transform: translateX(100%);
+    transition: all 0.3s ease-in-out;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+  }
+  
+  .toast.show {
+    opacity: 1;
+    transform: translateX(0);
+  }
+  
+  .toast-success {
+    background-color: #4CAF50;
+  }
+  
+  .toast-error {
+    background-color: #f44336;
+  }
+  
+  .toast-info {
+    background-color: #2196F3;
+  }
+  
+  /* Responsive adjustments */
+  @media (max-width: 768px) {
+    .hero-section {
+      padding: 60px 15px;
+    }
+    
+    .hero-section h1 {
+      font-size: 2rem;
+    }
+    
+    .featured-products {
+      grid-template-columns: 1fr;
+    }
+    
+    .categories-grid {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+</style>
+

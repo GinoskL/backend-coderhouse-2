@@ -24,13 +24,19 @@ const app = express()
 const server = createServer(app)
 const io = new Server(server)
 
-// ✅ Configurar Handlebars con opciones de acceso seguro
+// ✅ Configurar Handlebars con opciones de acceso seguro y helpers
 app.engine(
   "handlebars",
   engine({
     runtimeOptions: {
       allowProtoPropertiesByDefault: true,
       allowProtoMethodsByDefault: true,
+    },
+    helpers: {
+      eq: (a, b) => a === b,
+      multiply: (a, b) => a * b,
+      add: (a, b) => a + b,
+      subtract: (a, b) => a - b,
     },
   }),
 )
@@ -65,8 +71,19 @@ const getCartId = async () => {
 // ✅ Ruta para renderizar la vista home con productos
 app.get("/", async (req, res) => {
   try {
-    const products = await productManager.getProducts()
-    res.render("home", { title: "Lista de Productos", products })
+    const products = await productManager.getProducts({}, { limit: 5 })
+    const cartId = await getCartId()
+
+    // Get all unique categories for the category section
+    const allProducts = await productManager.getProducts()
+    const categories = [...new Set(allProducts.map((product) => product.category))]
+
+    res.render("home", {
+      title: "Bienvenido a nuestra tienda",
+      products,
+      categories,
+      cartId,
+    })
   } catch (error) {
     console.error("❌ Error en la ruta '/':", error.message)
     res.status(500).send(`❌ Error al cargar los productos: ${error.message}`)
@@ -90,6 +107,72 @@ app.get("/realtimeproducts", async (req, res) => {
   } catch (error) {
     console.error("❌ Error en la ruta '/realtimeproducts':", error.message)
     res.status(500).send(`❌ Error al cargar los productos: ${error.message}`)
+  }
+})
+
+// ✅ Nueva ruta para la vista de productos con paginación y filtros
+app.get("/products", async (req, res) => {
+  try {
+    const { limit = 10, page = 1, sort, category } = req.query
+
+    const options = {
+      limit: Number.parseInt(limit),
+      page: Number.parseInt(page),
+      sort: sort,
+    }
+
+    // Build filter object based on query parameters
+    const filter = {}
+    if (category) {
+      filter.category = category
+    }
+
+    const products = await productManager.getProducts(filter, options)
+    const totalProducts = await productManager.countProducts(filter)
+    const totalPages = Math.ceil(totalProducts / options.limit)
+    const hasPrevPage = options.page > 1
+    const hasNextPage = options.page < totalPages
+
+    // Get all unique categories for the filter dropdown
+    const allProducts = await productManager.getProducts()
+    const categories = [...new Set(allProducts.map((product) => product.category))]
+
+    // Get cart ID for add to cart functionality
+    const cartId = await getCartId()
+
+    res.render("products", {
+      title: "Catálogo de Productos",
+      products,
+      page: options.page,
+      limit: options.limit,
+      totalPages,
+      hasPrevPage,
+      hasNextPage,
+      prevPage: hasPrevPage ? options.page - 1 : null,
+      nextPage: hasNextPage ? options.page + 1 : null,
+      categories,
+      selectedCategory: category,
+      sort,
+      cartId,
+    })
+  } catch (error) {
+    console.error("❌ Error en la ruta '/products':", error.message)
+    res.status(500).send(`❌ Error al cargar los productos: ${error.message}`)
+  }
+})
+
+// ✅ Nueva ruta para ver el contenido de un carrito
+app.get("/carts/:cid", async (req, res) => {
+  try {
+    const cart = await cartManager.getCartById(req.params.cid)
+
+    res.render("cart", {
+      title: "Carrito de Compras",
+      cart,
+    })
+  } catch (error) {
+    console.error("❌ Error en la ruta '/carts/:cid':", error.message)
+    res.status(500).send(`❌ Error al cargar el carrito: ${error.message}`)
   }
 })
 
@@ -148,6 +231,36 @@ io.on("connection", async (socket) => {
       console.log("✅ Producto eliminado correctamente")
     } catch (error) {
       console.error("❌ Error al eliminar producto:", error.message)
+    }
+  })
+
+  // ✅ Recibir solicitud para actualizar un producto
+  socket.on("updateProduct", async (productData) => {
+    try {
+      if (!productData || !productData._id) {
+        console.log("❌ Error: Faltan datos del producto.")
+        return
+      }
+
+      console.log(`✏️ Actualizando producto ${productData._id}`)
+
+      // Actualizar el producto en la base de datos
+      const updatedProduct = await productManager.updateProduct(productData._id, productData)
+
+      if (!updatedProduct) {
+        console.log("❌ Error al actualizar producto.")
+        return
+      }
+
+      console.log("✅ Producto actualizado en MongoDB:", updatedProduct)
+
+      // Obtener la lista actualizada de productos
+      const updatedProducts = await productManager.getProducts()
+
+      // Emitir la lista actualizada a todos los clientes
+      io.emit("updateProducts", updatedProducts)
+    } catch (error) {
+      console.error("❌ Error al actualizar producto:", error.message)
     }
   })
 

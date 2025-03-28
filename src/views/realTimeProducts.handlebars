@@ -1,106 +1,174 @@
-<h1>{{title}}</h1>
+<div class="real-time-container">
+  <h1 class="page-title">{{title}}</h1>
 
-<div id="debug-info" style="background-color: #f0f0f0; padding: 10px; margin-bottom: 20px; display: none;">
+  <div id="debug-info" class="debug-panel" style="display: none;">
     <h3>Información de depuración</h3>
     <p>Carrito ID: <span id="debug-cart-id">{{cartId}}</span></p>
     <p>Productos cargados: <span id="debug-products-count">{{products.length}}</span></p>
-    <button onclick="toggleDebug()">Ocultar</button>
-</div>
+    <button class="debug-btn" onclick="toggleDebug()">Ocultar</button>
+  </div>
 
-<button onclick="toggleDebug()" style="margin-bottom: 10px;">Mostrar información de depuración</button>
+  <button class="debug-toggle-btn" onclick="toggleDebug()">Mostrar información de depuración</button>
 
-<table border="1">
-    <thead>
+  <div class="table-container">
+    <table class="products-table">
+      <thead>
         <tr>
-            <th>ID</th>
-            <th>Nombre</th>
-            <th>Descripción</th>
-            <th>Código</th>
-            <th>Precio</th>
-            <th>Stock</th>
-            <th>Categoría</th>
-            <th>Estado</th>
-            <th>Imágenes</th>
-            <th>Acciones</th>
+          <th>ID</th>
+          <th>Nombre</th>
+          <th>Descripción</th>
+          <th>Código</th>
+          <th>Precio</th>
+          <th>Stock</th>
+          <th>Categoría</th>
+          <th>Estado</th>
+          <th>Imágenes</th>
+          <th>Acciones</th>
         </tr>
-    </thead>
-    <tbody id="product-list">
+      </thead>
+      <tbody id="product-list">
         {{#if products.length}}
-            {{#each products}}
-            <tr>
-                <td>{{this._id}}</td>
-                <td>{{this.title}}</td>
-                <td>{{this.description}}</td>
-                <td>{{this.code}}</td>
-                <td>${{this.price}}</td>
-                <td>{{this.stock}}</td>
-                <td>{{this.category}}</td>
-                <td>{{#if this.status}}✔️{{else}}❌{{/if}}</td>
-                <td>
-                    {{#each this.thumbnails}}
-                        <img src="{{this}}" alt="Imagen" width="50">
-                    {{/each}}
-                </td>
-                <td>
-                    <button onclick="addToCart('{{../cartId}}', '{{this._id}}')">🛒 Agregar al carrito</button>
-                    <button onclick="deleteProduct('{{this._id}}')">🗑 Eliminar</button>
-                </td>
-            </tr>
-            {{/each}}
+          {{#each products}}
+          <tr>
+            <td>{{this._id}}</td>
+            <td>{{this.title}}</td>
+            <td>{{this.description}}</td>
+            <td>{{this.code}}</td>
+            <td>${{this.price}}</td>
+            <td>{{this.stock}}</td>
+            <td>{{this.category}}</td>
+            <td>{{#if this.status}}✔️{{else}}❌{{/if}}</td>
+            <td>
+              {{#each this.thumbnails}}
+                <img src="{{this}}" alt="Imagen" width="50">
+              {{/each}}
+            </td>
+            <td class="actions-cell">
+              <button class="action-btn add-btn" onclick="addToCart('{{../cartId}}', '{{this._id}}')">🛒</button>
+              <button class="action-btn edit-btn" onclick="openEditModal('{{this._id}}')">✏️</button>
+              <button class="action-btn delete-btn" onclick="deleteProduct('{{this._id}}')">🗑️</button>
+            </td>
+          </tr>
+          {{/each}}
         {{else}}
-            <tr>
-                <td colspan="10">❌ No hay productos disponibles</td>
-            </tr>
+          <tr>
+            <td colspan="10">❌ No hay productos disponibles</td>
+          </tr>
         {{/if}}
-    </tbody>
-</table>
+      </tbody>
+    </table>
+  </div>
 
-<!-- Formulario para agregar productos -->
-<h2>Agregar nuevo producto</h2>
-<form id="product-form">
-    <div style="margin-bottom: 10px;">
+  <!-- Formulario para agregar productos -->
+  <div class="form-container">
+    <h2 class="form-title">Agregar nuevo producto</h2>
+    <form id="product-form" class="product-form">
+      <div class="form-group">
         <label for="title">Nombre:</label>
         <input type="text" id="title" placeholder="Nombre del producto" required />
-    </div>
-    
-    <div style="margin-bottom: 10px;">
+      </div>
+      
+      <div class="form-group">
         <label for="description">Descripción:</label>
         <input type="text" id="description" placeholder="Descripción" required />
-    </div>
-    
-    <div style="margin-bottom: 10px;">
+      </div>
+      
+      <div class="form-group">
         <label for="code">Código:</label>
         <input type="text" id="code" placeholder="Código del producto" required />
-    </div>
-    
-    <div style="margin-bottom: 10px;">
+      </div>
+      
+      <div class="form-group">
         <label for="price">Precio:</label>
         <input type="number" id="price" placeholder="Precio" required />
-    </div>
-    
-    <div style="margin-bottom: 10px;">
+      </div>
+      
+      <div class="form-group">
         <label for="stock">Stock:</label>
         <input type="number" id="stock" placeholder="Stock disponible" required />
-    </div>
-    
-    <div style="margin-bottom: 10px;">
+      </div>
+      
+      <div class="form-group">
         <label for="category">Categoría:</label>
         <input type="text" id="category" placeholder="Categoría" required />
-    </div>
-    
-    <div style="margin-bottom: 10px;">
+      </div>
+      
+      <div class="form-group">
         <label for="thumbnails">Imágenes:</label>
         <input type="text" id="thumbnails" placeholder="URLs de imágenes separadas por coma" />
-    </div>
+      </div>
 
-    <button type="submit">Agregar Producto</button>
-</form>
+      <button type="submit" class="submit-btn">Agregar Producto</button>
+    </form>
+  </div>
+
+  <!-- Modal de edición -->
+  <div id="edit-modal" class="modal">
+    <div class="modal-content">
+      <span class="close-modal" onclick="closeEditModal()">&times;</span>
+      <h2>Editar Producto</h2>
+      <form id="edit-form" class="product-form">
+        <input type="hidden" id="edit-id">
+        
+        <div class="form-group">
+          <label for="edit-title">Nombre:</label>
+          <input type="text" id="edit-title" placeholder="Nombre del producto" required />
+        </div>
+        
+        <div class="form-group">
+          <label for="edit-description">Descripción:</label>
+          <input type="text" id="edit-description" placeholder="Descripción" required />
+        </div>
+        
+        <div class="form-group">
+          <label for="edit-code">Código:</label>
+          <input type="text" id="edit-code" placeholder="Código del producto" required />
+        </div>
+        
+        <div class="form-group">
+          <label for="edit-price">Precio:</label>
+          <input type="number" id="edit-price" placeholder="Precio" required />
+        </div>
+        
+        <div class="form-group">
+          <label for="edit-stock">Stock:</label>
+          <input type="number" id="edit-stock" placeholder="Stock disponible" required />
+        </div>
+        
+        <div class="form-group">
+          <label for="edit-category">Categoría:</label>
+          <input type="text" id="edit-category" placeholder="Categoría" required />
+        </div>
+        
+        <div class="form-group">
+          <label for="edit-thumbnails">Imágenes:</label>
+          <input type="text" id="edit-thumbnails" placeholder="URLs de imágenes separadas por coma" />
+        </div>
+        
+        <div class="form-group">
+          <label for="edit-status">Estado:</label>
+          <select id="edit-status">
+            <option value="true">Activo</option>
+            <option value="false">Inactivo</option>
+          </select>
+        </div>
+
+        <button type="submit" class="submit-btn">Guardar Cambios</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast notification container -->
+  <div id="toast-container" class="toast-container"></div>
+</div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
     // Store cartId in a variable accessible to all functions
     const cartId = "{{cartId}}";
     const socket = io();
+    const modal = document.getElementById('edit-modal');
+    let currentProducts = [];
     
     // Debug function to toggle debug info
     function toggleDebug() {
@@ -122,6 +190,7 @@
     socket.on('updateProducts', (products) => {
         console.log("📥 Productos recibidos desde WebSocket:", products);
         document.getElementById('debug-products-count').textContent = products.length;
+        currentProducts = products; // Store products for edit functionality
         renderProducts(products);
     });
 
@@ -150,9 +219,10 @@
                       ? product.thumbnails.map(img => `<img src="${img}" alt="Imagen" width="50">`).join('') 
                       : 'Sin imágenes'}
                 </td>
-                <td>
-                    <button onclick="addToCart('${cartId}', '${product._id}')">🛒 Agregar al carrito</button>
-                    <button onclick="deleteProduct('${product._id}')">🗑 Eliminar</button>
+                <td class="actions-cell">
+                    <button class="action-btn add-btn" onclick="addToCart('${cartId}', '${product._id}')">🛒</button>
+                    <button class="action-btn edit-btn" onclick="openEditModal('${product._id}')">✏️</button>
+                    <button class="action-btn delete-btn" onclick="deleteProduct('${product._id}')">🗑️</button>
                 </td>
             `;
             tableBody.appendChild(row);
@@ -188,7 +258,9 @@
         console.log("📤 Enviando producto:", newProduct);
 
         socket.emit('newProduct', newProduct);
-
+        
+        // Show success toast
+        showToast('✅ Producto agregado correctamente', 'success');
         document.getElementById('product-form').reset();
     });
 
@@ -217,27 +289,558 @@
         })
         .then(data => {
             console.log("✅ Producto agregado al carrito:", data);
-            alert('Producto agregado al carrito correctamente');
+            // Show toast notification instead of alert
+            showToast('✅ Producto agregado al carrito correctamente', 'success');
         })
         .catch(error => {
             console.error("❌ Error:", error);
-            alert('Error al agregar el producto al carrito');
+            showToast('❌ Error al agregar el producto al carrito', 'error');
         });
     }
 
-    // ✅ Eliminar producto (modificado para eliminar el producto, no del carrito)
+    // ✅ Eliminar producto
     function deleteProduct(productId) {
         if (!productId) {
             console.error("❌ Error: Falta productId.");
             return;
         }
         
-        if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
-            console.log(`🗑 Eliminando producto ${productId}`);
-            
-            // Enviar el ID del producto a eliminar
-            socket.emit('deleteProduct', productId);
+        // Show confirmation dialog with custom styling
+        showConfirmDialog(
+            '¿Estás seguro de que deseas eliminar este producto?',
+            () => {
+                console.log(`🗑 Eliminando producto ${productId}`);
+                
+                // Enviar el ID del producto a eliminar
+                socket.emit('deleteProduct', productId);
+                
+                // Show toast notification
+                showToast('✅ Producto eliminado correctamente', 'success');
+            }
+        );
+    }
+    
+    // ✅ Abrir modal de edición
+    function openEditModal(productId) {
+        const product = currentProducts.find(p => p._id === productId);
+        if (!product) {
+            showToast('❌ Error: Producto no encontrado', 'error');
+            return;
         }
+        
+        // Fill the form with product data
+        document.getElementById('edit-id').value = product._id;
+        document.getElementById('edit-title').value = product.title;
+        document.getElementById('edit-description').value = product.description;
+        document.getElementById('edit-code').value = product.code;
+        document.getElementById('edit-price').value = product.price;
+        document.getElementById('edit-stock').value = product.stock;
+        document.getElementById('edit-category').value = product.category;
+        document.getElementById('edit-thumbnails').value = product.thumbnails ? product.thumbnails.join(', ') : '';
+        document.getElementById('edit-status').value = product.status.toString();
+        
+        // Show modal
+        modal.style.display = 'block';
+    }
+    
+    // ✅ Cerrar modal de edición
+    function closeEditModal() {
+        modal.style.display = 'none';
+    }
+    
+    // ✅ Manejar envío del formulario de edición
+    document.getElementById('edit-form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        
+        const productId = document.getElementById('edit-id').value;
+        const title = document.getElementById('edit-title').value;
+        const description = document.getElementById('edit-description').value;
+        const code = document.getElementById('edit-code').value;
+        const price = document.getElementById('edit-price').value;
+        const stock = document.getElementById('edit-stock').value;
+        const category = document.getElementById('edit-category').value;
+        const thumbnailsInput = document.getElementById('edit-thumbnails').value;
+        const status = document.getElementById('edit-status').value === 'true';
+        
+        // Handle empty thumbnails input
+        const thumbnails = thumbnailsInput ? thumbnailsInput.split(',').map(url => url.trim()) : [];
+        
+        const updatedProduct = {
+            _id: productId,
+            title,
+            description,
+            code,
+            price: Number(price),
+            stock: Number(stock),
+            category,
+            thumbnails,
+            status
+        };
+        
+        console.log("📤 Actualizando producto:", updatedProduct);
+        
+        // Emit update event to server
+        socket.emit('updateProduct', updatedProduct);
+        
+        // Close modal
+        closeEditModal();
+        
+        // Show success toast
+        showToast('✅ Producto actualizado correctamente', 'success');
+    });
+    
+    // Close modal when clicking outside of it
+    window.onclick = function(event) {
+        if (event.target === modal) {
+            closeEditModal();
+        }
+    };
+    
+    // Function to show toast notification
+    function showToast(message, type = 'info') {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        
+        // Create toast content with icon
+        let icon = '';
+        if (type === 'success') icon = '✅';
+        else if (type === 'error') icon = '❌';
+        else if (type === 'info') icon = 'ℹ️';
+        else if (type === 'warning') icon = '⚠️';
+        
+        toast.innerHTML = `
+            <div class="toast-icon">${icon}</div>
+            <div class="toast-message">${message}</div>
+            <button class="toast-close" onclick="this.parentElement.remove()">×</button>
+        `;
+        
+        const container = document.getElementById('toast-container');
+        container.appendChild(toast);
+        
+        // Trigger animation
+        setTimeout(() => {
+            toast.classList.add('show');
+        }, 10);
+        
+        // Remove toast after 3 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => {
+                if (toast.parentElement) {
+                    container.removeChild(toast);
+                }
+            }, 300);
+        }, 3000);
+    }
+    
+    // Function to show custom confirmation dialog
+    function showConfirmDialog(message, onConfirm) {
+        // Create dialog elements
+        const overlay = document.createElement('div');
+        overlay.className = 'dialog-overlay';
+        
+        const dialog = document.createElement('div');
+        dialog.className = 'confirm-dialog';
+        
+        dialog.innerHTML = `
+            <div class="dialog-content">
+                <div class="dialog-message">${message}</div>
+                <div class="dialog-buttons">
+                    <button class="dialog-btn dialog-cancel">Cancelar</button>
+                    <button class="dialog-btn dialog-confirm">Confirmar</button>
+                </div>
+            </div>
+        `;
+        
+        // Add to DOM
+        document.body.appendChild(overlay);
+        document.body.appendChild(dialog);
+        
+        // Add event listeners
+        const cancelBtn = dialog.querySelector('.dialog-cancel');
+        const confirmBtn = dialog.querySelector('.dialog-confirm');
+        
+        cancelBtn.addEventListener('click', () => {
+            document.body.removeChild(overlay);
+            document.body.removeChild(dialog);
+        });
+        
+        confirmBtn.addEventListener('click', () => {
+            onConfirm();
+            document.body.removeChild(overlay);
+            document.body.removeChild(dialog);
+        });
     }
 </script>
+
+<style>
+    /* General Styles */
+    .real-time-container {
+        max-width: 1200px;
+        margin: 0 auto;
+        padding: 20px;
+        font-family: 'Arial', sans-serif;
+    }
+    
+    .page-title {
+        text-align: center;
+        margin-bottom: 30px;
+        color: #333;
+        font-size: 2rem;
+    }
+    
+    /* Debug Panel */
+    .debug-panel {
+        background-color: #f0f0f0;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 20px;
+        border: 1px solid #ddd;
+    }
+    
+    .debug-btn, .debug-toggle-btn {
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 8px 15px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s;
+    }
+    
+    .debug-btn:hover, .debug-toggle-btn:hover {
+        background-color: #45a049;
+    }
+    
+    /* Table Styles */
+    .table-container {
+        overflow-x: auto;
+        margin-bottom: 30px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        border-radius: 8px;
+    }
+    
+    .products-table {
+        width: 100%;
+        border-collapse: collapse;
+        background-color: white;
+    }
+    
+    .products-table th, .products-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .products-table th {
+        background-color: #4CAF50;
+        color: white;
+        font-weight: bold;
+        position: sticky;
+        top: 0;
+    }
+    
+    .products-table tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    
+    .products-table tr:hover {
+        background-color: #f1f1f1;
+    }
+    
+    /* Action Buttons */
+    .actions-cell {
+        display: flex;
+        gap: 5px;
+        justify-content: center;
+    }
+    
+    .action-btn {
+        width: 36px;
+        height: 36px;
+        border-radius: 50%;
+        border: none;
+        cursor: pointer;
+        font-size: 16px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s;
+    }
+    
+    .add-btn {
+        background-color: #4CAF50;
+        color: white;
+    }
+    
+    .edit-btn {
+        background-color: #2196F3;
+        color: white;
+    }
+    
+    .delete-btn {
+        background-color: #f44336;
+        color: white;
+    }
+    
+    .action-btn:hover {
+        transform: scale(1.1);
+        box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+    }
+    
+    /* Form Styles */
+    .form-container {
+        background-color: #f9f9f9;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .form-title {
+        margin-top: 0;
+        margin-bottom: 20px;
+        color: #333;
+        text-align: center;
+    }
+    
+    .product-form {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 15px;
+    }
+    
+    @media (max-width: 768px) {
+        .product-form {
+            grid-template-columns: 1fr;
+        }
+    }
+    
+    .form-group {
+        margin-bottom: 15px;
+    }
+    
+    .form-group label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+        color: #333;
+    }
+    
+    .product-form input, .product-form select {
+        width: 100%;
+        padding: 10px;
+        border: 1px solid #ddd;
+        border-radius: 4px;
+        font-size: 14px;
+    }
+    
+    .product-form input:focus, .product-form select:focus {
+        outline: none;
+        border-color: #4CAF50;
+        box-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+    }
+    
+    .submit-btn {
+        grid-column: span 2;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        padding: 12px;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 16px;
+        transition: background-color 0.3s;
+    }
+    
+    @media (max-width: 768px) {
+        .submit-btn {
+            grid-column: span 1;
+        }
+    }
+    
+    .submit-btn:hover {
+        background-color: #45a049;
+    }
+    
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        overflow: auto;
+    }
+    
+    .modal-content {
+        background-color: white;
+        margin: 10% auto;
+        padding: 20px;
+        border-radius: 8px;
+        width: 80%;
+        max-width: 700px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        animation: modalFadeIn 0.3s;
+    }
+    
+    @keyframes modalFadeIn {
+        from {opacity: 0; transform: translateY(-50px);}
+        to {opacity: 1; transform: translateY(0);}
+    }
+    
+    .close-modal {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+    
+    .close-modal:hover {
+        color: #333;
+    }
+    
+    /* Toast Notifications */
+    .toast-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+    }
+    
+    .toast {
+        display: flex;
+        align-items: center;
+        min-width: 300px;
+        margin-bottom: 10px;
+        padding: 15px;
+        border-radius: 8px;
+        color: white;
+        font-weight: 500;
+        opacity: 0;
+        transform: translateX(100%);
+        transition: all 0.3s ease-in-out;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+    }
+    
+    .toast.show {
+        opacity: 1;
+        transform: translateX(0);
+    }
+    
+    .toast-icon {
+        margin-right: 10px;
+        font-size: 20px;
+    }
+    
+    .toast-message {
+        flex: 1;
+    }
+    
+    .toast-close {
+        background: none;
+        border: none;
+        color: white;
+        font-size: 20px;
+        cursor: pointer;
+        opacity: 0.7;
+    }
+    
+    .toast-close:hover {
+        opacity: 1;
+    }
+    
+    .toast-success {
+        background-color: #4CAF50;
+        border-left: 5px solid #2E7D32;
+    }
+    
+    .toast-error {
+        background-color: #f44336;
+        border-left: 5px solid #B71C1C;
+    }
+    
+    .toast-info {
+        background-color: #2196F3;
+        border-left: 5px solid #0D47A1;
+    }
+    
+    .toast-warning {
+        background-color: #FF9800;
+        border-left: 5px solid #E65100;
+    }
+    
+    /* Confirmation Dialog */
+    .dialog-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background-color: rgba(0,0,0,0.5);
+        z-index: 1001;
+    }
+    
+    .confirm-dialog {
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background-color: white;
+        padding: 20px;
+        border-radius: 8px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        z-index: 1002;
+        width: 90%;
+        max-width: 400px;
+        animation: dialogFadeIn 0.3s;
+    }
+    
+    @keyframes dialogFadeIn {
+        from {opacity: 0; transform: translate(-50%, -60%);}
+        to {opacity: 1; transform: translate(-50%, -50%);}
+    }
+    
+    .dialog-message {
+        margin-bottom: 20px;
+        font-size: 16px;
+        text-align: center;
+    }
+    
+    .dialog-buttons {
+        display: flex;
+        justify-content: space-between;
+    }
+    
+    .dialog-btn {
+        padding: 10px 20px;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+        font-size: 14px;
+        transition: background-color 0.3s;
+    }
+    
+    .dialog-cancel {
+        background-color: #f5f5f5;
+        color: #333;
+    }
+    
+    .dialog-confirm {
+        background-color: #f44336;
+        color: white;
+    }
+    
+    .dialog-cancel:hover {
+        background-color: #e0e0e0;
+    }
+    
+    .dialog-confirm:hover {
+        background-color: #d32f2f;
+    }
+</style>
 

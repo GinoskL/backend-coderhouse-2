@@ -1,0 +1,134 @@
+/* Estilos generales */
+body {
+    font-family: "Arial", sans-serif;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0;
+    color: #333;
+  }
+  
+  .container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 20px;
+  }
+  
+  h1,
+  h2,
+  h3 {
+    margin-top: 0;
+  }
+  
+  /* Navegación */
+  .navbar {
+    background-color: #333;
+    color: white;
+    padding: 10px 20px;
+  }
+  
+  .navbar ul {
+    display: flex;
+    list-style: none;
+    margin: 0;
+    padding: 0;
+  }
+  
+  .navbar li {
+    margin-right: 20px;
+  }
+  
+  .navbar a {
+    color: white;
+    text-decoration: none;
+  }
+  
+  /* Botones */
+  .btn {
+    display: inline-block;
+    background-color: #4caf50;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 4px;
+    cursor: pointer;
+    text-decoration: none;
+    font-size: 14px;
+  }
+  
+  .btn-danger {
+    background-color: #f44336;
+  }
+  
+  .btn-secondary {
+    background-color: #2196f3;
+  }
+  
+  /* Formularios */
+  form {
+    margin-bottom: 20px;
+  }
+  
+  input,
+  select,
+  textarea {
+    padding: 8px;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    width: 100%;
+    margin-bottom: 10px;
+  }
+  
+  label {
+    display: block;
+    margin-bottom: 5px;
+    font-weight: bold;
+  }
+  
+  /* Tablas */
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 20px;
+  }
+  
+  th,
+  td {
+    padding: 12px;
+    text-align: left;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  th {
+    background-color: #f2f2f2;
+  }
+  
+  /* Mensajes de alerta */
+  .alert {
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 4px;
+  }
+  
+  .alert-success {
+    background-color: #dff0d8;
+    color: #3c763d;
+  }
+  
+  .alert-danger {
+    background-color: #f2dede;
+    color: #a94442;
+  }
+  
+  /* Responsive */
+  @media (max-width: 768px) {
+    .container {
+      padding: 10px;
+    }
+  
+    table {
+      display: block;
+      overflow-x: auto;
+    }
+  }
+  
+  
