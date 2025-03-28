@@ -1,5 +1,14 @@
 <h1>{{title}}</h1>
 
+<div id="debug-info" style="background-color: #f0f0f0; padding: 10px; margin-bottom: 20px; display: none;">
+    <h3>Información de depuración</h3>
+    <p>Carrito ID: <span id="debug-cart-id">{{cartId}}</span></p>
+    <p>Productos cargados: <span id="debug-products-count">{{products.length}}</span></p>
+    <button onclick="toggleDebug()">Ocultar</button>
+</div>
+
+<button onclick="toggleDebug()" style="margin-bottom: 10px;">Mostrar información de depuración</button>
+
 <table border="1">
     <thead>
         <tr>
@@ -16,49 +25,103 @@
         </tr>
     </thead>
     <tbody id="product-list">
-        {{#each products}}
-        <tr>
-            <td>{{this._id}}</td>
-            <td>{{this.title}}</td>
-            <td>{{this.description}}</td>
-            <td>{{this.code}}</td>
-            <td>${{this.price}}</td>
-            <td>{{this.stock}}</td>
-            <td>{{this.category}}</td>
-            <td>{{#if this.status}}✔️{{else}}❌{{/if}}</td>
-            <td>
-                {{#each this.thumbnails}}
-                    <img src="{{this}}" alt="Imagen" width="50">
-                {{/each}}
-            </td>
-            <td>
-                <button onclick="deleteProduct('{{../cartId}}', '{{this._id}}')">🗑 Eliminar</button>
-            </td>
-        </tr>
-        {{/each}}
+        {{#if products.length}}
+            {{#each products}}
+            <tr>
+                <td>{{this._id}}</td>
+                <td>{{this.title}}</td>
+                <td>{{this.description}}</td>
+                <td>{{this.code}}</td>
+                <td>${{this.price}}</td>
+                <td>{{this.stock}}</td>
+                <td>{{this.category}}</td>
+                <td>{{#if this.status}}✔️{{else}}❌{{/if}}</td>
+                <td>
+                    {{#each this.thumbnails}}
+                        <img src="{{this}}" alt="Imagen" width="50">
+                    {{/each}}
+                </td>
+                <td>
+                    <button onclick="addToCart('{{../cartId}}', '{{this._id}}')">🛒 Agregar al carrito</button>
+                    <button onclick="deleteProduct('{{this._id}}')">🗑 Eliminar</button>
+                </td>
+            </tr>
+            {{/each}}
+        {{else}}
+            <tr>
+                <td colspan="10">❌ No hay productos disponibles</td>
+            </tr>
+        {{/if}}
     </tbody>
 </table>
 
 <!-- Formulario para agregar productos -->
+<h2>Agregar nuevo producto</h2>
 <form id="product-form">
-    <input type="text" id="title" placeholder="Nombre del producto" required />
-    <input type="text" id="description" placeholder="Descripción" required />
-    <input type="text" id="code" placeholder="Código del producto" required />
-    <input type="number" id="price" placeholder="Precio" required />
-    <input type="number" id="stock" placeholder="Stock disponible" required />
-    <input type="text" id="category" placeholder="Categoría" required />
-    <input type="text" id="thumbnails" placeholder="URLs de imágenes separadas por coma" />
+    <div style="margin-bottom: 10px;">
+        <label for="title">Nombre:</label>
+        <input type="text" id="title" placeholder="Nombre del producto" required />
+    </div>
+    
+    <div style="margin-bottom: 10px;">
+        <label for="description">Descripción:</label>
+        <input type="text" id="description" placeholder="Descripción" required />
+    </div>
+    
+    <div style="margin-bottom: 10px;">
+        <label for="code">Código:</label>
+        <input type="text" id="code" placeholder="Código del producto" required />
+    </div>
+    
+    <div style="margin-bottom: 10px;">
+        <label for="price">Precio:</label>
+        <input type="number" id="price" placeholder="Precio" required />
+    </div>
+    
+    <div style="margin-bottom: 10px;">
+        <label for="stock">Stock:</label>
+        <input type="number" id="stock" placeholder="Stock disponible" required />
+    </div>
+    
+    <div style="margin-bottom: 10px;">
+        <label for="category">Categoría:</label>
+        <input type="text" id="category" placeholder="Categoría" required />
+    </div>
+    
+    <div style="margin-bottom: 10px;">
+        <label for="thumbnails">Imágenes:</label>
+        <input type="text" id="thumbnails" placeholder="URLs de imágenes separadas por coma" />
+    </div>
 
     <button type="submit">Agregar Producto</button>
 </form>
 
 <script src="/socket.io/socket.io.js"></script>
 <script>
+    // Store cartId in a variable accessible to all functions
+    const cartId = "{{cartId}}";
     const socket = io();
+    
+    // Debug function to toggle debug info
+    function toggleDebug() {
+        const debugInfo = document.getElementById('debug-info');
+        if (debugInfo.style.display === 'none') {
+            debugInfo.style.display = 'block';
+        } else {
+            debugInfo.style.display = 'none';
+        }
+    }
+
+    // Log initial products from server-side rendering
+    console.log("Initial products from server:", {
+        count: {{products.length}},
+        cartId: "{{cartId}}"
+    });
 
     // ✅ Escuchar actualización de productos desde WebSockets
     socket.on('updateProducts', (products) => {
         console.log("📥 Productos recibidos desde WebSocket:", products);
+        document.getElementById('debug-products-count').textContent = products.length;
         renderProducts(products);
     });
 
@@ -83,10 +146,13 @@
                 <td>${product.category}</td>
                 <td>${product.status ? '✔️' : '❌'}</td>
                 <td>
-                    ${product.thumbnails.map(img => `<img src="${img}" alt="Imagen" width="50">`).join('')}
+                    ${product.thumbnails && product.thumbnails.length > 0 
+                      ? product.thumbnails.map(img => `<img src="${img}" alt="Imagen" width="50">`).join('') 
+                      : 'Sin imágenes'}
                 </td>
                 <td>
-                    <button onclick="deleteProduct('${cartId}', '${product._id}')">🗑 Eliminar</button>
+                    <button onclick="addToCart('${cartId}', '${product._id}')">🛒 Agregar al carrito</button>
+                    <button onclick="deleteProduct('${product._id}')">🗑 Eliminar</button>
                 </td>
             `;
             tableBody.appendChild(row);
@@ -103,9 +169,21 @@
         const price = document.getElementById('price').value;
         const stock = document.getElementById('stock').value;
         const category = document.getElementById('category').value;
-        const thumbnails = document.getElementById('thumbnails').value.split(',').map(url => url.trim());
+        const thumbnailsInput = document.getElementById('thumbnails').value;
+        
+        // Handle empty thumbnails input
+        const thumbnails = thumbnailsInput ? thumbnailsInput.split(',').map(url => url.trim()) : [];
 
-        const newProduct = { title, description, code, price: Number(price), stock: Number(stock), category, thumbnails };
+        const newProduct = { 
+            title, 
+            description, 
+            code, 
+            price: Number(price), 
+            stock: Number(stock), 
+            category, 
+            thumbnails,
+            status: true 
+        };
 
         console.log("📤 Enviando producto:", newProduct);
 
@@ -114,16 +192,52 @@
         document.getElementById('product-form').reset();
     });
 
-    // ✅ Eliminar producto
-    function deleteProduct(cartId, productId) {
+    // ✅ Agregar producto al carrito
+    function addToCart(cartId, productId) {
         if (!cartId || !productId) {
             console.error("❌ Error: Faltan cartId o productId.");
             return;
         }
-        console.log(`🗑 Eliminando producto ${productId} del carrito ${cartId}`);
-        socket.emit('deleteProduct', { cartId, productId });
+        
+        console.log(`🛒 Agregando producto ${productId} al carrito ${cartId}`);
+        
+        // Use fetch to call the API endpoint
+        fetch(`/api/carts/${cartId}/products/${productId}`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ quantity: 1 })
+        })
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error al agregar al carrito');
+            }
+            return response.json();
+        })
+        .then(data => {
+            console.log("✅ Producto agregado al carrito:", data);
+            alert('Producto agregado al carrito correctamente');
+        })
+        .catch(error => {
+            console.error("❌ Error:", error);
+            alert('Error al agregar el producto al carrito');
+        });
+    }
+
+    // ✅ Eliminar producto (modificado para eliminar el producto, no del carrito)
+    function deleteProduct(productId) {
+        if (!productId) {
+            console.error("❌ Error: Falta productId.");
+            return;
+        }
+        
+        if (confirm('¿Estás seguro de que deseas eliminar este producto?')) {
+            console.log(`🗑 Eliminando producto ${productId}`);
+            
+            // Enviar el ID del producto a eliminar
+            socket.emit('deleteProduct', productId);
+        }
     }
 </script>
-
-
 
